@@ -1,0 +1,8 @@
+train_and_evaluate.data = @CIFARData()
+CIFARData.batch_size = 128
+train_and_evaluate.network = @MLPNet()
+MLPNet.hidden_dim = 4096
+train_and_evaluate.epochs = 5
+train_and_evaluate.lr = 0.001
+train_and_evaluate.tracker = @ConsoleTracker()
+ConsoleTracker.project = "cifar"

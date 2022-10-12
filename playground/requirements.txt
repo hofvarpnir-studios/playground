@@ -1,0 +1,7 @@
+einops
+gin_config
+numpy
+torch
+wandb
+matplotlib
+jupyter

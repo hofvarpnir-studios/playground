@@ -1,0 +1,10 @@
+train_and_evaluate.data = @CIFARData()
+CIFARData.batch_size = 128
+train_and_evaluate.network = @ConvNet()
+ConvNet.filters = 16
+ConvNet.kernel = 3
+ConvNet.hidden_dim = 512
+train_and_evaluate.epochs = 5
+train_and_evaluate.lr = 0.001
+train_and_evaluate.tracker = @ConsoleTracker()
+ConsoleTracker.project = "cifar"
