@@ -1,7 +1,9 @@
 FROM --platform=linux/amd64 continuumio/miniconda3
 SHELL ["conda", "run", "/bin/bash", "-c"]
 # Install system dependencies
-RUN apt update && apt install -y git strace vim && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y git strace vim g++ && rm -rf /var/lib/apt/lists/*
+# Set CXX env var and install g++
+ENV CXX g++
 # Install base python dependencies
 RUN conda install python=3.10 pytorch torchvision pytorch-cuda=11.7 -c pytorch-nightly -c nvidia && conda clean -a -y
 # Install python dependencies
@@ -15,4 +17,4 @@ EXPOSE 8888
 ENV TINI_VERSION v0.6.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
 RUN chmod +x /usr/bin/tini
-ENTRYPOINT ["conda", "run", "/usr/bin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]

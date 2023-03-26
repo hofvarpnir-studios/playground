@@ -22,13 +22,13 @@ DATA = TOP_LEVEL / "data"
 class Trainer:
     def __init__(
         self,
-        model_id: str = "google/flan-t5-xxl",
-        dataset_path: str = "alpaca_data.json",
-        batch_size: int = 4,
-        max_length: int = 512,
-        epochs: int = 1,
-        lr: float = 1e-4,
-        tracker: Tracker = ConsoleTracker(),
+        model_id: str ,
+        dataset_path: str ,
+        batch_size: int ,
+        max_length: int ,
+        epochs: int ,
+        lr: float ,
+        tracker: Tracker ,
     ):
         ### Init
 
