@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from accelerate import Accelerator
-import tqdm
+from tqdm import tqdm
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -12,7 +12,7 @@ from transformers import (
 )
 from peft import LoraConfig, TaskType, get_peft_model, get_peft_model_state_dict
 
-from playground.tracker.tracker import ConsoleTracker, Tracker
+from playground.tracker.tracker import Tracker
 from pathlib import Path
 
 TOP_LEVEL = Path(__file__).parent
@@ -57,16 +57,17 @@ class Trainer:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         dataset = load_dataset(
             "json",
-            data_files={
-                "train": DATA/dataset_path,
+            data_files={    
+                "train": str(DATA/dataset_path),
             },
             cache_dir="./cache",
         )
 
         with self.accelerator.main_process_first():
             self.processed_dataset = dataset.map(
-                self.prepare_data, batched=True, batch_size=batch_size
+                self.prepare_data, load_from_cache_file=False, desc="Formatting data...", remove_columns=["instruction", "input", "output"]
             )["train"]
+        print(self.processed_dataset[0])
 
         data_collator = DataCollatorForSeq2Seq(self.tokenizer, model=model)
 
@@ -97,43 +98,31 @@ class Trainer:
         self.model = torch.compile(self.model)
 
     @staticmethod
-    def format_prompt(instruction: str, input: str) -> str:
-        if input:
+    def format_prompt(example: dict[str,str]) -> str:
+        if example["input"]:
             return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the requested task.
 
-Instruction: {instruction}
+Instruction: {example["instruction"]}
 
-Input: {input}
+Input: {example["input"]}
 
 Response:"""
         else:
             return f"""Below is an instruction that describes a task. Write a response that appropriately completes the requested task.
                 
-Instruction: {instruction}
+Instruction: {example["instruction"]}
 
 Response:"""
 
-    def prepare_data(self, examples: list[dict[str, str]]):
-        inputs = [
-            self.format_prompt(example["instruction"], example["input"])
-            for example in examples
-        ]
+    def prepare_data(self, example: dict[str,str]):
+        input = self.format_prompt(example)
         model_inputs = self.tokenizer(
-            inputs,
+            input,
+            text_target = example["output"],
             max_length=self.max_length,
-            padding="max_length",
+            padding=True,
             truncation=True,
-            return_tensors="pt",
         )
-        with self.tokenizer.as_target_tokenizer():
-            labels = self.tokenizer(
-                [example["output"] for example in examples],
-                max_length=self.max_length,
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt",
-            )
-        model_inputs["labels"] = labels["input_ids"]
         return model_inputs
 
     def train(self):
