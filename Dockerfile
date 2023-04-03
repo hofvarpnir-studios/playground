@@ -11,6 +11,7 @@ RUN conda install python=3.10 pytorch torchvision pytorch-cuda=11.7 -c pytorch-n
 # Install python dependencies
 COPY . /code/playground
 WORKDIR /code/playground
+RUN pip install -r requirements.txt
 RUN pip install -e .
 # Expose general port
 EXPOSE 3000
