@@ -19,16 +19,17 @@ TOP_LEVEL = Path(__file__).parent
 CONFIGS = TOP_LEVEL / "configs"
 DATA = TOP_LEVEL / "data"
 
+
 class Trainer:
     def __init__(
         self,
-        model_id: str ,
-        dataset_path: str ,
-        batch_size: int ,
-        max_length: int ,
-        epochs: int ,
-        lr: float ,
-        tracker: Tracker ,
+        model_id: str,
+        dataset_path: str,
+        batch_size: int,
+        max_length: int,
+        epochs: int,
+        lr: float,
+        tracker: Tracker,
         checkpoint_name: str,
     ):
         ### Init
@@ -58,15 +59,18 @@ class Trainer:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         dataset = load_dataset(
             "json",
-            data_files={    
-                "train": str(DATA/dataset_path),
+            data_files={
+                "train": str(DATA / dataset_path),
             },
             cache_dir="./cache",
         )
 
         with self.accelerator.main_process_first():
             self.processed_dataset = dataset.map(
-                self.prepare_data, load_from_cache_file=False, desc="Formatting data...", remove_columns=["instruction", "input", "output"]
+                self.prepare_data,
+                load_from_cache_file=False,
+                desc="Formatting data...",
+                remove_columns=["instruction", "input", "output"],
             )["train"]
 
         data_collator = DataCollatorForSeq2Seq(self.tokenizer, model=model)
@@ -98,7 +102,7 @@ class Trainer:
         self.model = torch.compile(self.model)
 
     @staticmethod
-    def format_prompt(example: dict[str,str]) -> str:
+    def format_prompt(example: dict[str, str]) -> str:
         if example["input"]:
             return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the requested task.
 
@@ -114,11 +118,11 @@ Instruction: {example["instruction"]}
 
 Response:"""
 
-    def prepare_data(self, example: dict[str,str]):
+    def prepare_data(self, example: dict[str, str]):
         input = self.format_prompt(example)
         model_inputs = self.tokenizer(
             input,
-            text_target = example["output"],
+            text_target=example["output"],
             max_length=self.max_length,
             padding=True,
             truncation=True,
@@ -128,7 +132,7 @@ Response:"""
     def train(self):
         for _ in range(self.epochs):
             self.model.train()
-            k=0
+            k = 0
             for step, batch in enumerate(tqdm(self.train_dataloader)):
                 outputs = self.model(**batch)
                 loss = outputs.loss
@@ -139,7 +143,9 @@ Response:"""
                 self.tracker.log_iteration_time(batch.size(0), k)
                 if step % 1000 == 0:
                     print("loss: ", loss.detach().float())
-                    self.tracker.add_scalar("metrics/train-loss", loss.detach().float(), k)
+                    self.tracker.add_scalar(
+                        "metrics/train-loss", loss.detach().float(), k
+                    )
                     self.accelerator.wait_for_everyone()
                     if self.accelerator.is_main_process:
                         self.accelerator.save(
@@ -149,5 +155,5 @@ Response:"""
                             ),
                             self.checkpoint_name,
                         )
-                k+=1
+                k += 1
         self.accelerator.wait_for_everyone()

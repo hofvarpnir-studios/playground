@@ -4,6 +4,7 @@ import gin
 
 from playground.tracker.tracker import Tracker
 
+
 @gin.configurable
 def train(
     model_id: str = gin.REQUIRED,
