@@ -13,6 +13,7 @@ def train(
     epochs: int = gin.REQUIRED,
     lr: float = gin.REQUIRED,
     tracker: Tracker = gin.REQUIRED,
+    checkpoint_name: str = gin.REQUIRED,
 ):
     trainer = Trainer(
         model_id=model_id,
@@ -22,6 +23,7 @@ def train(
         epochs=epochs,
         lr=lr,
         tracker=tracker,
+        checkpoint_name=checkpoint_name,
     )
     trainer.train()
 

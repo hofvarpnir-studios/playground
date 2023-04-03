@@ -6,3 +6,4 @@ train.epochs = 1
 train.lr = 1e-4
 train.tracker = @ConsoleTracker()
 ConsoleTracker.project = "chatbot"
+train.checkpoint_name = "chaT5_lora.pt"

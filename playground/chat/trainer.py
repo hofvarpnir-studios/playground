@@ -29,6 +29,7 @@ class Trainer:
         epochs: int ,
         lr: float ,
         tracker: Tracker ,
+        checkpoint_name: str,
     ):
         ### Init
 
@@ -37,7 +38,7 @@ class Trainer:
         self.batch_size = batch_size
         self.max_length = max_length
         self.tracker = tracker
-        self.checkpoint_name = "chaT5_lora.pt"
+        self.checkpoint_name = checkpoint_name
 
         ### Load model
 
@@ -67,7 +68,6 @@ class Trainer:
             self.processed_dataset = dataset.map(
                 self.prepare_data, load_from_cache_file=False, desc="Formatting data...", remove_columns=["instruction", "input", "output"]
             )["train"]
-        print(self.processed_dataset[0])
 
         data_collator = DataCollatorForSeq2Seq(self.tokenizer, model=model)
 
