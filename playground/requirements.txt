@@ -5,3 +5,8 @@ torch
 wandb
 matplotlib
 jupyter
+transformers
+accelerate
+peft
+datasets
+tqdm

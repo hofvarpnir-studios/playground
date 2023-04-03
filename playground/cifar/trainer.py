@@ -7,6 +7,7 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 from playground.cifar.utils import acc
 from playground.cifar.models import ConvNet, MLPNet
 from playground.tracker.tracker import Tracker
@@ -86,9 +87,11 @@ class Trainer:
         self.optimizer = optim.AdamW(self.network.parameters(), lr=lr)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.network.to(self.device)
+        self.network = torch.compile(self.network)
         self.tracker = tracker
 
     def train(self):
+        print("Training")
         train_results = []
         validation_results = []
         self.network.train()
@@ -97,7 +100,7 @@ class Trainer:
         for _ in range(self.epochs):
             running_loss = 0.0
             correct, total = 0, 0
-            for i, (images, labels) in enumerate(self.data_class.trainloader):
+            for i, (images, labels) in enumerate(tqdm(self.data_class.trainloader)):
                 batch_size = images.size(0)
                 # get network output
                 images = images.to(self.device)
@@ -135,11 +138,12 @@ class Trainer:
                 k += 1
 
     def validate_accuracy(self) -> Tuple[float, float]:
+        print("Validating accuracy")
         correct = 0
         total = 0
         running_loss = 0.0
         with torch.no_grad():
-            for images, labels in self.data_class.testloader:
+            for images, labels in tqdm(self.data_class.testloader):
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.network(images)
@@ -151,12 +155,13 @@ class Trainer:
         return running_loss, acc(correct, total)
 
     def validate_by_class(self) -> Dict[str, float]:
+        print("Validating by class")
         self.network.eval()
         correct_pred = {classname: 0 for classname in self.data_class.categories}
         total_pred = {classname: 0 for classname in self.data_class.categories}
 
         with torch.no_grad():
-            for images, labels in self.data_class.testloader:
+            for images, labels in tqdm(self.data_class.testloader):
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.network(images)
