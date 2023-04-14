@@ -7,7 +7,7 @@ ENV CXX g++
 # Install s5cmd
 RUN curl -L https://github.com/peak/s5cmd/releases/download/v2.1.0-beta.1/s5cmd_2.1.0-beta.1_Linux-64bit.tar.gz | tar -xz -C /usr/local/bin && s5cmd --help
 # Install pytorch
-RUN conda install python=3.10 pytorch torchvision pytorch-cuda=11.7 -c pytorch-nightly -c nvidia && conda clean -a -y
+RUN conda install python=3.10 pytorch nomkl torchvision pytorch-cuda=11.7 -c pytorch-nightly -c nvidia && conda clean -a -y
 # Install python dependencies
 COPY . /code/playground
 WORKDIR /code/playground
